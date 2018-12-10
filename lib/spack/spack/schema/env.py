@@ -47,6 +47,84 @@ schema = {
                                 {'type': 'object'},
                             ]
                         }
+                    },
+                    'matrices': {
+                        'type': 'array',
+                        'default': [],
+                        'additionalProperties': False,
+                        'items': {
+                            'type': 'object',
+                            'default': {},
+                            'additionalProperties': False,
+                            'properties': {
+                                'specs': {
+                                    # Specs is a list of specs, which can have
+                                    # optional additional properties in a sub-dict
+                                    'type': 'array',
+                                    'default': [],
+                                    'additionalProperties': False,
+                                    'items': {
+                                        'anyOf': [
+                                            {'type': 'string'},
+                                            {'type': 'null'},
+                                            {'type': 'object'},
+                                        ]
+                                    }
+                                },
+                                'toolchain-generator': {
+                                    # Specs is a list of specs, which can have
+                                    # optional additional properties in a sub-dict
+                                    'type': 'array',
+                                    'default': [],
+                                    'additionalProperties': False,
+                                    'items': {
+                                        'type': 'array',
+                                        'default': [],
+                                        'additionalProperties': False,
+                                        'items': {
+                                            'anyOf': [
+                                                {'type': 'string'},
+                                                {'type': 'null'},
+                                                {'type': 'object'},
+                                            ]
+                                        }
+                                    }
+                                },
+                                'toolchains': {
+                                    # Specs is a list of specs, which can have
+                                    # optional additional properties in a sub-dict
+                                    'type': 'array',
+                                    'default': [],
+                                    'additionalProperties': False,
+                                    'items': {
+                                        'type': 'array',
+                                        'default': [],
+                                        'additionalProperties': False,
+                                        'items': {
+                                            'anyOf': [
+                                                {'type': 'string'},
+                                                {'type': 'null'},
+                                                {'type': 'object'},
+                                            ]
+                                        }
+                                    }
+                                },
+                                'exclude': {
+                                    # Specs is a list of specs, which can have
+                                    # optional additional properties in a sub-dict
+                                    'type': 'array',
+                                    'default': [],
+                                    'additionalProperties': False,
+                                    'items': {
+                                        'anyOf': [
+                                            {'type': 'string'},
+                                            {'type': 'null'},
+                                            {'type': 'object'},
+                                        ]
+                                    }
+                                },
+                            }
+                        }
                     }
                 }
             )
