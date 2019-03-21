@@ -1,0 +1,233 @@
+commit 25d37d58ec864e3366b405a773f9464a18f260df
+Author: Satish Balay <balay@mcs.anl.gov>
+Date:   Wed Mar 20 16:06:31 2019 -0500
+
+    compile fixes for petsc master [as of mar 2019]
+    
+    This revert VecScatterCreate change in  2181bfb88- but retains
+    PCGetSetUpFailedReason and KSP_DIVERGED_PCSETUP_FAILED changes
+
+diff --git a/src/pflotran/criticality.F90 b/src/pflotran/criticality.F90
+index 824e57b35..568ca72b8 100644
+--- a/src/pflotran/criticality.F90
++++ b/src/pflotran/criticality.F90
+@@ -9,9 +9,6 @@ module Criticality_module
+ ! to waste form criticality.
+ ! ===========================================================================
+ #include "petsc/finclude/petscsys.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscsys
+   use PFLOTRAN_Constants_module
+   use Data_Mediator_Vec_class
+diff --git a/src/pflotran/factory_surfsubsurface.F90 b/src/pflotran/factory_surfsubsurface.F90
+index e49e90058..e80026350 100644
+--- a/src/pflotran/factory_surfsubsurface.F90
++++ b/src/pflotran/factory_surfsubsurface.F90
+@@ -1,9 +1,6 @@
+ module Factory_Surf_Subsurf_module
+ 
+ #include "petsc/finclude/petscsys.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscsys
+   use Simulation_Surf_Subsurf_class
+ 
+diff --git a/src/pflotran/geomech_grid.F90 b/src/pflotran/geomech_grid.F90
+index 5b0dd0098..c464ee36e 100644
+--- a/src/pflotran/geomech_grid.F90
++++ b/src/pflotran/geomech_grid.F90
+@@ -1,9 +1,6 @@
+ module Geomechanics_Grid_module
+ 
+ #include "petsc/finclude/petscvec.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscvec
+   use Geomechanics_Grid_Aux_module
+   use Grid_Unstructured_Cell_module
+diff --git a/src/pflotran/geomech_grid_aux.F90 b/src/pflotran/geomech_grid_aux.F90
+index 081e775da..45598342e 100644
+--- a/src/pflotran/geomech_grid_aux.F90
++++ b/src/pflotran/geomech_grid_aux.F90
+@@ -1,9 +1,6 @@
+ module Geomechanics_Grid_Aux_module
+ 
+ #include "petsc/finclude/petscvec.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscvec
+   use Grid_Unstructured_Cell_module
+   use Gauss_module
+diff --git a/src/pflotran/geomechanics_realization.F90 b/src/pflotran/geomechanics_realization.F90
+index ef194f8a0..c0d0be676 100644
+--- a/src/pflotran/geomechanics_realization.F90
++++ b/src/pflotran/geomechanics_realization.F90
+@@ -1,9 +1,6 @@
+ module Geomechanics_Realization_class
+ 
+ #include "petsc/finclude/petscsys.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscsys
+   use Realization_Base_class
+   use Geomechanics_Discretization_module
+diff --git a/src/pflotran/geomechanics_regression.F90 b/src/pflotran/geomechanics_regression.F90
+index e5052b4f4..c7e985be9 100644
+--- a/src/pflotran/geomechanics_regression.F90
++++ b/src/pflotran/geomechanics_regression.F90
+@@ -1,9 +1,6 @@
+ module Geomechanics_Regression_module
+  
+ #include "petsc/finclude/petscvec.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscvec
+   use Output_Aux_module
+   
+diff --git a/src/pflotran/grid.F90 b/src/pflotran/grid.F90
+index 9021866f3..a68c0cc47 100644
+--- a/src/pflotran/grid.F90
++++ b/src/pflotran/grid.F90
+@@ -1,9 +1,6 @@
+ module Grid_module
+ 
+ #include "petsc/finclude/petscmat.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscmat
+   use Grid_Structured_module
+   use Grid_Unstructured_module
+diff --git a/src/pflotran/grid_structured.F90 b/src/pflotran/grid_structured.F90
+index 7de78aad4..d36e2d186 100644
+--- a/src/pflotran/grid_structured.F90
++++ b/src/pflotran/grid_structured.F90
+@@ -1,9 +1,6 @@
+ module Grid_Structured_module
+ 
+ #include "petsc/finclude/petscsys.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscsys
+   use PFLOTRAN_Constants_module
+   use Utility_module, only : Equal
+diff --git a/src/pflotran/grid_unstructured.F90 b/src/pflotran/grid_unstructured.F90
+index 63b8cddf1..43f52cb88 100644
+--- a/src/pflotran/grid_unstructured.F90
++++ b/src/pflotran/grid_unstructured.F90
+@@ -1,9 +1,6 @@
+ module Grid_Unstructured_module
+ 
+ #include "petsc/finclude/petscvec.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscvec
+   use Connection_module
+   use Grid_Unstructured_Aux_module
+diff --git a/src/pflotran/grid_unstructured_aux.F90 b/src/pflotran/grid_unstructured_aux.F90
+index 779de3c6b..f856eb70f 100644
+--- a/src/pflotran/grid_unstructured_aux.F90
++++ b/src/pflotran/grid_unstructured_aux.F90
+@@ -2,9 +2,6 @@ module Grid_Unstructured_Aux_module
+ 
+ !  use Connection_module
+ #include "petsc/finclude/petscvec.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscvec
+   use Grid_Unstructured_Cell_module
+   use Geometry_module
+diff --git a/src/pflotran/grid_unstructured_explicit.F90 b/src/pflotran/grid_unstructured_explicit.F90
+index 25d78f449..b46f58480 100644
+--- a/src/pflotran/grid_unstructured_explicit.F90
++++ b/src/pflotran/grid_unstructured_explicit.F90
+@@ -1,9 +1,6 @@
+ module Grid_Unstructured_Explicit_module
+   
+ #include "petsc/finclude/petscvec.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscvec
+   use Geometry_module
+   use Grid_Unstructured_Aux_module
+diff --git a/src/pflotran/grid_unstructured_polyhedra.F90 b/src/pflotran/grid_unstructured_polyhedra.F90
+index a51a0bac4..c35e1710b 100644
+--- a/src/pflotran/grid_unstructured_polyhedra.F90
++++ b/src/pflotran/grid_unstructured_polyhedra.F90
+@@ -1,9 +1,6 @@
+ module Grid_Unstructured_Polyhedra_module
+ 
+ #include "petsc/finclude/petscvec.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscvec
+   use Geometry_module
+   use Grid_Unstructured_Aux_module
+diff --git a/src/pflotran/patch.F90 b/src/pflotran/patch.F90
+index 1da2417c9..e434bd87c 100644
+--- a/src/pflotran/patch.F90
++++ b/src/pflotran/patch.F90
+@@ -1,9 +1,6 @@
+ module Patch_module
+ 
+ #include "petsc/finclude/petscsys.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscsys
+   use Option_module
+   use Grid_module
+diff --git a/src/pflotran/pm_waste_form.F90 b/src/pflotran/pm_waste_form.F90
+index 13a83a289..5bd4bbf8a 100644
+--- a/src/pflotran/pm_waste_form.F90
++++ b/src/pflotran/pm_waste_form.F90
+@@ -11,9 +11,6 @@ module PM_Waste_Form_class
+ ! ===========================================================================
+ 
+ #include "petsc/finclude/petscsys.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscsys
+   use PM_Base_class
+   use Realization_Subsurface_class
+diff --git a/src/pflotran/realization_surface.F90 b/src/pflotran/realization_surface.F90
+index 0e6e58d04..b3d770d8a 100644
+--- a/src/pflotran/realization_surface.F90
++++ b/src/pflotran/realization_surface.F90
+@@ -23,9 +23,6 @@ private
+ 
+ 
+ #include "petsc/finclude/petscsys.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+ 
+   PetscReal, parameter :: eps       = 1.D-8
+ 
+diff --git a/src/pflotran/regression.F90 b/src/pflotran/regression.F90
+index 27c88d514..c27d270cf 100644
+--- a/src/pflotran/regression.F90
++++ b/src/pflotran/regression.F90
+@@ -1,9 +1,6 @@
+ module Regression_module
+  
+ #include "petsc/finclude/petscvec.h"
+-#if PETSC_VERSION_GE(3,11,0)
+-#define VecScatterCreate VecScatterCreateWithData
+-#endif
+   use petscvec
+   use Output_Aux_module
+   
