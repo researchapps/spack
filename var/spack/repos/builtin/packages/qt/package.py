@@ -17,6 +17,7 @@ class Qt(Package):
     list_url = 'http://download.qt.io/archive/qt/'
     list_depth = 3
 
+    version('5.12.2', '59b8cb4e728450b21224dcaaa40eb25bafc5196b6988f2225c394c6b7f881ff5')
     version('5.11.3', '859417642713cee2493ee3646a7fee782c9f1db39e41d7bb1322bba0c5f0ff4d')
     version('5.11.2', 'c6104b840b6caee596fa9a35bc5f57f67ed5a99d6a36497b6fe66f990a53ca81')
     version('5.10.0', 'c5e275ab0ed7ee61d0f4b82cd471770d')
@@ -252,7 +253,7 @@ class Qt(Package):
             '-release',
             '-shared',
             '-confirm-license',
-            '-openssl-linked',
+#            '-openssl-linked',
             '-optimized-qmake',
             '-system-freetype',
             '-I{0}/freetype2'.format(self.spec['freetype'].prefix.include),
@@ -260,25 +261,25 @@ class Qt(Package):
             '-system-sqlite'
         ]
 
-        if self.spec.satisfies('@5:'):
-            config_args.append('-system-harfbuzz')
-            config_args.append('-system-pcre')
+        #if self.spec.satisfies('@5:'):
+        #    config_args.append('-system-harfbuzz')
+        #    config_args.append('-system-pcre')
 
-        if self.spec.satisfies('@5.7:'):
-            config_args.append('-system-doubleconversion')
+        #if self.spec.satisfies('@5.7:'):
+        #    config_args.append('-system-doubleconversion')
 
         if sys.platform != 'darwin':
             config_args.append('-fontconfig')
 
         if '@:5.7.1' in self.spec:
             config_args.append('-no-openvg')
-        else:
-            # FIXME: those could work for other versions
-            config_args.extend([
-                '-system-libpng',
-                '-system-libjpeg',
-                '-system-zlib'
-            ])
+        #else:
+        #    # FIXME: those could work for other versions
+        #    config_args.extend([
+        #        '-system-libpng',
+        #        '-system-libjpeg',
+        #        '-system-zlib'
+        #    ])
 
         if '@:5.7.0' in self.spec:
             config_args.extend([
