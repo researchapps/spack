@@ -4,8 +4,14 @@ From: {{ image }}
 %environment
 SPACK_ROOT=/home/spack
 FORCE_UNSAFE_CONFIGURE=1
-PATH="${PATH}:${SPACK_ROOT}/bin"
-export SPACK_ROOT FORCE_UNSAFE_CONFIGURE PATH
+SPACK_ENV_BIN="${SPACK_ROOT}/var/spack/environments/{{ env_name }}/.spack-env/view/bin"
+SPACK_ENV_LIB="${SPACK_ROOT}/var/spack/environments/{{ env_name }}/.spack-env/view/lib"
+PATH="${PATH}:${SPACK_ROOT}/bin:${SPACK_ENV_BIN}"
+LD_LIBRARY_PATH="${SPACK_ENV_LIB}:${LD_LIBRARY_PATH}"
+export SPACK_ROOT FORCE_UNSAFE_CONFIGURE PATH LD_LIBRARY_PATH
+
+%files
+{{ files }}
 
 %help
 {{ help }}
@@ -24,7 +30,21 @@ mkdir -p $SPACK_ROOT
 curl -s -L https://api.github.com/repos/{{ repo }}/spack/tarball/{{ branch }} \
     | tar xzC $SPACK_ROOT --strip 1
 
-/home/spack/bin/spack install {{ specs }}
+# No matter what, create an environment to work in
+spack env create {{ env_name }}
+
+# If the user provided a spack.yml file, use it
+if [ -f "/spack.yaml" ]; then
+    echo "Detected custom spack.yaml environment added to container."
+    cp /spack.yaml ${SPACK_ROOT}/var/spack/environments/{{ env_name }}/spack.yaml
+else
+    spack install {{ specs }}
+    spack -e {{ env_name }} add {{ specs }}
+fi
+
+spack -e {{ env_name }} install
 
 %runscript
-exec /home/spack/bin/spack "$@"
+. /home/spack/share/spack/setup-env.sh
+${SPACK_ROOT}/bin/spack env activate {{ env_name }}
+exec /bin/bash "$@"

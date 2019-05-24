@@ -1290,7 +1290,7 @@ we just generated a recipe for above:
 
 .. code-block:: console
 
-    $ spack singularity build --from vanessa/salad --distro alpine perl
+    $ sudo spack singularity build --from vanessa/salad --distro alpine perl
     ==> Installing packages perl
     ==> Working directory created in /tmp/tmpO0Ww9s
     ==> Writing recipe to /tmp/tmpO0Ww9s/Singularity
@@ -1332,6 +1332,7 @@ and build.
                             Singularity bootstrap (default: docker)
       --working_dir WORKING_DIR
                             temporary working directory for recipe|build.
+      --env_name ENV_NAME   spack environment name (default spackenv)
       --name NAME           container name (default container.sif)
       --from IMAGE          image or from string (From:<image>) (default ubuntu:18.04)
       --helpstr HELPSTR     custom help string to describe the container
@@ -1343,6 +1344,7 @@ and build.
 
  - *bootstrap* indicates the `bootstrap header <https://www.sylabs.io/guides/3.0/user-guide/definition_files.html#header>`_ field. This defaults to docker, meaning the "from" image is a Docker container, and we dump layers into a rootfs to build a Singularity container.
  - *working_dir* is where you want the recipe generated, and/or the build to occur. If you don't provide one, a temporary directory is made. The directory you provide must exist.
+ - *env_name* is the name of the spack environment that is created. By default, software is installed under this environment, and the environment activated when you run the container.
  - *name* is the name of the container to build in the working directory. This defaults to container.sif.
  - *helpstr* is any additional help you want to provide the user for your container. By default, a simple string is printed to indicate that spack is in the container with the set of packages (specs) that you choose (``This is a spack container with packages curl``).
  - *distro* must coincide with the operating system of the from image, with choices listed above. If it can be derived from the name (e.g., "ubuntu:16.04") you don't need to specify the argument. If it cannot, then you need to.

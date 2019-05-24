@@ -14,6 +14,7 @@
 
 import argparse
 import os
+import shutil
 import tempfile
 
 import llnl.util.filesystem
@@ -56,6 +57,10 @@ def setup_parser(subparser):
         action.add_argument(
             '--name', action='store', type=str, default='container.sif',
             help='container name (default container.sif)')
+
+        action.add_argument(
+            '--env_name', action='store', type=str, default='spackenv',
+            help='spack environment name (default spackenv)')
 
         action.add_argument(
             '--from', action='store', dest="image", type=str,
@@ -113,6 +118,7 @@ def singularity(parser, args):
                               branch=args.branch,
                               repo=args.repo,
                               help=help_str,
+                              env_name=args.env_name,
                               build_dir=args.working_dir)
 
     # Build the container, or show how to do it?
@@ -136,6 +142,9 @@ def singularity(parser, args):
 
             # Should we clean up?
             tty.die("Container build failed.")
+
+        # Change permission of build directory, read by others
+        os.chmod(build_dir, 0755)
 
         tty.msg("Container successfully built:", container)
 
@@ -180,6 +189,7 @@ def create_recipe(bootstrap,
                   help,
                   specs,
                   distro,
+                  env_name,
                   build_dir):
 
     ''' create_recipe will start with the Singularity template, add
@@ -194,6 +204,7 @@ def create_recipe(bootstrap,
         help (str): the help string to provide to the container
         specs (str): space separated list of packages (specs) to install
         distro (str) the OS distibution, if not obvious from name
+        env_name (str): the name of the spack environment to create
         build_dir (str): the temporary directory to write / build in.
    '''
 
@@ -219,6 +230,8 @@ def create_recipe(bootstrap,
     apk add --no-cache curl bash openssh libtool linux-headers
     '''
     }
+    # No additional files by default
+    files = ""
 
     # Double check we have a valid distro
     if distro not in dependencies:
@@ -233,6 +246,15 @@ def create_recipe(bootstrap,
         tty.die("Working directory %s does not exist." % build_dir)
 
     recipe = os.path.join(build_dir, 'Singularity')
+
+    # If the user provided a spack.yaml environment, add to files instead
+    if "spack.yaml" in specs:
+        if not os.path.exists(specs):
+            tty.die("spack.yaml environment given, but %s not found." % specs)
+        spack_yaml = os.path.join(build_dir, 'spack.yaml')
+        tty.msg("Found spack.yaml environment to install from.")
+        shutil.copyfile(specs, spack_yaml)
+        files = "spack.yaml /spack.yaml"
 
     # Singularity recipe template to build container
     template_recipe = os.path.join('containers', 'singularity', 'Singularity')
@@ -250,6 +272,8 @@ def create_recipe(bootstrap,
             'image': image,
             'dependencies': dependencies[distro],
             'branch': branch,
+            'files': files,
+            'env_name': env_name,
             'repo': repo
         }))
 
