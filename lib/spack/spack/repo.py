@@ -9,6 +9,7 @@ import contextlib
 import errno
 import functools
 import inspect
+import itertools
 import os
 import re
 import shutil
@@ -151,9 +152,10 @@ class FastPackageChecker(Mapping):
 
             # Warn about invalid names that look like packages.
             if not valid_module_name(pkg_name):
-                msg = 'Skipping package at {0}. '
-                msg += '"{1}" is not a valid Spack module name.'
-                tty.warn(msg.format(pkg_dir, pkg_name))
+                if not pkg_name.startswith('.'):
+                    tty.warn('Skipping package at {0}. "{1}" is not '
+                             'a valid Spack module name.'.format(
+                                 pkg_dir, pkg_name))
                 continue
 
             # Construct the file name from the directory
@@ -182,6 +184,10 @@ class FastPackageChecker(Mapping):
             cache[pkg_name] = sinfo
 
         return cache
+
+    def last_mtime(self):
+        return max(
+            sinfo.st_mtime for sinfo in self._packages_to_stats.values())
 
     def __getitem__(self, item):
         return self._packages_to_stats[item]
@@ -607,6 +613,10 @@ class RepoPath(object):
         sys.modules[fullname] = module
         return module
 
+    def last_mtime(self):
+        """Time a package file in this repo was last updated."""
+        return max(repo.last_mtime() for repo in self.repos)
+
     def repo_for_pkg(self, spec):
         """Given a spec, get the repository for its package."""
         # We don't @_autospec this function b/c it's called very frequently
@@ -885,8 +895,10 @@ class Repo(object):
         except spack.error.SpackError:
             # pass these through as their error messages will be fine.
             raise
-        except Exception:
-            # make sure other errors in constructors hit the error
+        except Exception as e:
+            tty.debug(e)
+
+            # Make sure other errors in constructors hit the error
             # handler by wrapping them
             if spack.config.get('config:debug'):
                 sys.excepthook(*sys.exc_info())
@@ -910,7 +922,9 @@ class Repo(object):
 
         # Install patch files needed by the package.
         mkdirp(path)
-        for patch in spec.patches:
+        for patch in itertools.chain.from_iterable(
+                spec.package.patches.values()):
+
             if patch.path:
                 if os.path.exists(patch.path):
                     install(patch.path, path)
@@ -1017,6 +1031,10 @@ class Repo(object):
     def exists(self, pkg_name):
         """Whether a package with the supplied name exists."""
         return pkg_name in self._pkg_checker
+
+    def last_mtime(self):
+        """Time a package file in this repo was last updated."""
+        return self._pkg_checker.last_mtime()
 
     def is_virtual(self, pkg_name):
         """True if the package with this name is virtual, False otherwise."""
@@ -1221,6 +1239,18 @@ def swap(repo_path):
     if remove_from_meta:
         sys.meta_path.remove(repo_path)
     path = saved
+
+
+@contextlib.contextmanager
+def additional_repository(repository):
+    """Adds temporarily a repository to the default one.
+
+    Args:
+        repository: repository to be added
+    """
+    path.put_first(repository)
+    yield
+    path.remove(repository)
 
 
 class RepoError(spack.error.SpackError):

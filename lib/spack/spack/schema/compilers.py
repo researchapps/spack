@@ -5,7 +5,7 @@
 
 """Schema for compilers.yaml configuration file.
 
-.. literalinclude:: ../spack/schema/compilers.py
+.. literalinclude:: _spack_root/lib/spack/spack/schema/compilers.py
    :lines: 13-
 """
 
@@ -61,6 +61,10 @@ properties = {
                         'modules': {'anyOf': [{'type': 'string'},
                                               {'type': 'null'},
                                               {'type': 'array'}]},
+                        'implicit_rpaths': {
+                            'type': 'array',
+                            'items': {'type': 'string'}
+                        },
                         'environment': {
                             'type': 'object',
                             'default': {},

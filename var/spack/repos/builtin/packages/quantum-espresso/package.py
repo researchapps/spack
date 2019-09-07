@@ -17,9 +17,11 @@ class QuantumEspresso(Package):
     """
 
     homepage = 'http://quantum-espresso.org'
-    url = 'https://gitlab.com/QEF/q-e/-/archive/qe-6.3/q-e-qe-6.3.tar.gz'
+    url = 'https://gitlab.com/QEF/q-e/-/archive/qe-6.4.1/q-e-qe-6.4.1.tar.gz'
     git = 'https://gitlab.com/QEF/q-e.git'
 
+    version('develop', branch='develop')
+    version('6.4.1', sha256='b0d7e9f617b848753ad923d8c6ca5490d5d82495f82b032b71a0ff2f2e9cfa08')
     version('6.4', sha256='781366d03da75516fdcf9100a1caadb26ccdd1dedd942a6f8595ff0edca74bfe')
     version('6.3',   '1b67687d90d1d16781d566d44d14634c')
     version('6.2.1', '769cc973382156bffd35254c3dbaf453')
@@ -28,8 +30,6 @@ class QuantumEspresso(Package):
     version('6.0.0', 'd915f2faf69d0e499f8e1681c42cbfc9')
     version('5.4',   '085f7e4de0952e266957bbc79563c54e')
     version('5.3',   'be3f8778e302cffb89258a5f936a7592')
-    version('develop', branch='develop')
-    version('latest-backports', branch='qe-6.3-backports')
 
     variant('mpi', default=True, description='Builds with mpi support')
     variant('openmp', default=False, description='Enables openMP support')
@@ -170,6 +170,7 @@ class QuantumEspresso(Package):
             options.append('CC={0}'.format(env['SPACK_CC']))
 
         options.append('F77={0}'.format(env['SPACK_F77']))
+        options.append('F90={0}'.format(env['SPACK_FC']))
 
         if '+openmp' in spec:
             options.append('--enable-openmp')
@@ -217,13 +218,13 @@ class QuantumEspresso(Package):
             # Spec for elpa
             elpa = spec['elpa']
 
-            # Find where the Fortran module resides
-            elpa_module = find(elpa.prefix, 'elpa.mod')
-
             # Compute the include directory from there: versions
             # of espresso prior to 6.1 requires -I in front of the directory
             elpa_include = '' if '@6.1:' in spec else '-I'
-            elpa_include += os.path.dirname(elpa_module[0])
+            elpa_include += os.path.join(
+                elpa.headers.directories[0],
+                'modules'
+            )
 
             options.extend([
                 '--with-elpa-include={0}'.format(elpa_include),

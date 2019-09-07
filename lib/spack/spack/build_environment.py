@@ -348,6 +348,10 @@ def set_build_environment_variables(pkg, env, dirty):
         extra_rpaths = ':'.join(compiler.extra_rpaths)
         env.set('SPACK_COMPILER_EXTRA_RPATHS', extra_rpaths)
 
+    if compiler.implicit_rpaths:
+        implicit_rpaths = ':'.join(compiler.implicit_rpaths)
+        env.set('SPACK_COMPILER_IMPLICIT_RPATHS', implicit_rpaths)
+
     # Add bin directories from dependencies to the PATH for the build.
     for prefix in build_prefixes:
         for dirname in ['bin', 'bin64']:
@@ -404,12 +408,10 @@ def set_build_environment_variables(pkg, env, dirty):
 
 def _set_variables_for_single_module(pkg, module):
     """Helper function to set module variables for single module."""
-    # number of jobs spack will build with.
-    jobs = spack.config.get('config:build_jobs') or multiprocessing.cpu_count()
-    if not pkg.parallel:
-        jobs = 1
-    elif pkg.make_jobs:
-        jobs = pkg.make_jobs
+
+    jobs = spack.config.get('config:build_jobs') if pkg.parallel else 1
+    jobs = min(jobs, multiprocessing.cpu_count())
+    assert jobs is not None, "no default set for config:build_jobs"
 
     m = module
     m.make_jobs = jobs
@@ -996,7 +998,7 @@ class ChildError(InstallError):
 
         if self.build_log and os.path.exists(self.build_log):
             out.write('See build log for details:\n')
-            out.write('  %s' % self.build_log)
+            out.write('  %s\n' % self.build_log)
 
         return out.getvalue()
 

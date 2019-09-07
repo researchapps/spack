@@ -81,8 +81,8 @@ class Trilinos(CMakePackage):
             description='Compile with Boost')
     variant('cgns',         default=False,
             description='Enable CGNS')
-    variant('exodus',       default=True,
-            description='Compile with Exodus from SEACAS')
+    variant('adios2',         default=False,
+            description='Enable ADIOS2')
     variant('gtest',        default=True,
             description='Compile with Gtest')
     variant('hdf5',         default=True,
@@ -119,10 +119,17 @@ class Trilinos(CMakePackage):
             description='Compile with Aztec')
     variant('belos',        default=True,
             description='Compile with Belos')
+    # chaco is disabled by default. As of 12.14.1 libchaco.so
+    # has the global symbol divide (and maybe others) that can
+    # lead to symbol clash.
+    variant('chaco',       default=False,
+            description='Compile with Chaco from SEACAS')
     variant('epetra',       default=True,
             description='Compile with Epetra')
     variant('epetraext',    default=True,
             description='Compile with EpetraExt')
+    variant('exodus',       default=True,
+            description='Compile with Exodus from SEACAS')
     variant('ifpack',       default=True,
             description='Compile with Ifpack')
     variant('ifpack2',      default=True,
@@ -187,6 +194,7 @@ class Trilinos(CMakePackage):
              git='https://github.com/ornl-cees/DataTransferKit.git',
              branch='master',
              placement='DataTransferKit',
+             submodules=True,
              when='+dtk @develop')
     resource(name='fortrilinos',
              git='https://github.com/trilinos/ForTrilinos.git',
@@ -271,7 +279,9 @@ class Trilinos(CMakePackage):
         '+shared', when='+stk platform=darwin',
         msg='Cannot build Trilinos with STK as a shared library on Darwin.'
     )
-
+    # ADIOS2 was only added after v12.14.1
+    conflicts('+adios2', when='@:12.14.1')
+    conflicts('+adios2', when='@xsdk-0.2.0')
     # ###################### Dependencies ##########################
 
     # Everything should be compiled position independent (-fpic)
@@ -292,6 +302,7 @@ class Trilinos(CMakePackage):
     depends_on('parallel-netcdf', when="+pnetcdf@master,12.12.1:")
     depends_on('parmetis', when='+metis')
     depends_on('cgns', when='+cgns')
+    depends_on('adios2', when='+adios2')
     # Trilinos' Tribits config system is limited which makes it very tricky to
     # link Amesos with static MUMPS, see
     # https://trilinos.org/docs/dev/packages/amesos2/doc/html/classAmesos2_1_1MUMPS.html
@@ -439,21 +450,12 @@ class Trilinos(CMakePackage):
             options.extend(['-DUSE_XSDK_DEFAULTS=YES'])
 
         if '+stk' in spec:
-            # Currently these are fairly specific to the Nalu package
-            # They can likely change when necessary in the future
             options.extend([
-                '-DTrilinos_ENABLE_STKMesh:BOOL=ON',
-                '-DTrilinos_ENABLE_STKNGP:BOOL=ON',
-                '-DTrilinos_ENABLE_STKSimd:BOOL=ON',
-                '-DTrilinos_ENABLE_STKIO:BOOL=ON',
-                '-DTrilinos_ENABLE_STKTransfer:BOOL=ON',
-                '-DTrilinos_ENABLE_STKSearch:BOOL=ON',
-                '-DTrilinos_ENABLE_STKUtil:BOOL=ON',
-                '-DTrilinos_ENABLE_STKTopology:BOOL=ON',
-                '-DTrilinos_ENABLE_STKUnit_tests:BOOL=ON',
-                '-DTrilinos_ENABLE_STKUnit_test_utils:BOOL=ON',
-                '-DTrilinos_ENABLE_STKClassic:BOOL=OFF',
-                '-DTrilinos_ENABLE_STKExprEval:BOOL=ON'
+                '-DTrilinos_ENABLE_STK:BOOL=ON'
+            ])
+        else:
+            options.extend([
+                '-DTrilinos_ENABLE_STK:BOOL=OFF'
             ])
 
         if '+dtk' in spec:
@@ -463,21 +465,31 @@ class Trilinos(CMakePackage):
             ])
 
         if '+exodus' in spec:
-            # Currently these are fairly specific to the Nalu package
-            # They can likely change when necessary in the future
             options.extend([
                 '-DTrilinos_ENABLE_SEACAS:BOOL=ON',
                 '-DTrilinos_ENABLE_SEACASExodus:BOOL=ON',
+                '-DTrilinos_ENABLE_SEACASIoss:BOOL=ON',
                 '-DTrilinos_ENABLE_SEACASEpu:BOOL=ON',
                 '-DTrilinos_ENABLE_SEACASExodiff:BOOL=ON',
                 '-DTrilinos_ENABLE_SEACASNemspread:BOOL=ON',
-                '-DTrilinos_ENABLE_SEACASNemslice:BOOL=ON',
-                '-DTrilinos_ENABLE_SEACASIoss:BOOL=ON'
+                '-DTrilinos_ENABLE_SEACASNemslice:BOOL=ON'
             ])
         else:
             options.extend([
-                '-DTrilinos_ENABLE_SEACAS:BOOL=OFF',
-                '-DTrilinos_ENABLE_SEACASExodus:BOOL=OFF'
+                '-DTrilinos_ENABLE_SEACASExodus:BOOL=OFF',
+                '-DTrilinos_ENABLE_SEACASIoss:BOOL=OFF'
+            ])
+
+        if '+chaco' in spec:
+            options.extend([
+                '-DTrilinos_ENABLE_SEACAS:BOOL=ON'
+                '-DTrilinos_ENABLE_SEACASChaco:BOOL=ON'
+            ])
+        else:
+            # don't disable SEACAS, could be needed elsewhere
+            options.extend([
+                '-DTrilinos_ENABLE_SEACASChaco:BOOL=OFF',
+                '-DTrilinos_ENABLE_SEACASNemslice=OFF'
             ])
 
         # ######################### TPLs #############################
@@ -657,6 +669,7 @@ class Trilinos(CMakePackage):
                 '-DTPL_ENABLE_CGNS:BOOL=OFF'
             ])
 
+        options.append('-DTPL_ENABLE_ADIOS2:BOOL=' + str('+adios2' in spec))
         # ################# Miscellaneous Stuff ######################
 
         # OpenMP
